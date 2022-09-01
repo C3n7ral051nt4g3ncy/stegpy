@@ -34,5 +34,4 @@ def decrypt_info(password, token, salt):
     password = bytes((password).encode('utf-8'))
     key = derive_key(password, salt)[0]
     f = Fernet(key)
-    info = f.decrypt(token)
-    return info
+    return f.decrypt(token)

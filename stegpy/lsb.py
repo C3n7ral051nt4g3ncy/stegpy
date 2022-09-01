@@ -15,7 +15,7 @@ class HostElement:
         self.header, self.data = get_file(filename)
 
     def save(self):
-        self.filename = '_' + self.filename
+        self.filename = f'_{self.filename}'
         if self.format.lower() == 'wav':
             sound = numpy.concatenate((self.header, self.data))
             sound.tofile(self.filename)
@@ -29,10 +29,10 @@ class HostElement:
         else:
             if not self.filename.lower().endswith(('png', 'bmp', 'webp')):
                 print("Host has a lossy format and will be converted to PNG.")
-                self.filename = self.filename[:-3] + 'png'
+                self.filename = f'{self.filename[:-3]}png'
             image = Image.fromarray(self.data)
             image.save(self.filename, lossless=True, minimize_size=True, optimize=True)
-        print("Information encoded in {}.".format(self.filename))
+        print(f"Information encoded in {self.filename}.")
 
     def insert_message(self, message, bits=2, parasite_filename=None, password=None):
         raw_message_len = len(message).to_bytes(4, 'big')
@@ -43,7 +43,7 @@ class HostElement:
 
     def read_message(self, password=None):
         msg = decode_message(self.data)
-        
+
         if password:
             try:
                 salt = bytes(msg[:16])
@@ -61,7 +61,7 @@ class HostElement:
         end_filename = filename_len + 11
         if(filename_len > 0):
             filename = '_' + bytes(msg[11:end_filename]).decode('utf-8')
-        
+
         else:
             text = bytes(msg[start:end]).decode('utf-8')
             print(text)
@@ -70,7 +70,7 @@ class HostElement:
         with open(filename, 'wb') as f:
             f.write(bytes(msg[start:end]))
 
-        print('File {} succesfully extracted from {}'.format(filename, self.filename))
+        print(f'File {filename} succesfully extracted from {self.filename}')
 
     def free_space(self, bits=2):
         shape = self.data.shape
@@ -129,7 +129,7 @@ def encode_message(host_data, message, bits):
     print("Maximum size: {:,} bytes".format(host_data.size // divisor))
 
     check_message_space(host_data.size // divisor, len(message))
- 
+
     if(host_data.size % divisor != 0): # Hacky way to deal with pixel arrays that cannot be divided evenly
         uneven = 1
         original_size = host_data.size
@@ -148,9 +148,9 @@ def encode_message(host_data, message, bits):
 
     if uneven:
         host_data = numpy.resize(host_data, original_size)
-    
+
     host_data.shape = shape # restore the 3D shape
-    
+
     return host_data
 
 def check_message_space(max_message_len, message_len):
@@ -178,7 +178,7 @@ def decode_message(host_data):
     return msg
 
 def check_magic_number(msg):
-    if bytes(msg[0:6]) != MAGIC_NUMBER:
+    if bytes(msg[:6]) != MAGIC_NUMBER:
         print(bytes(msg[:6]))
         print('ERROR! No encoded info found!')
         exit(-1)
